@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-
+from copy import deepcopy
 
 class RandSampler(object):
     def __init__(self, max_size: int, batch_size: int = 1) -> None:
@@ -89,7 +89,8 @@ class ReplayBuffer(object):
             torch.FloatTensor(self.next_state[ind]).to(self.device),
             torch.FloatTensor(self.reward[ind]).to(self.device),
             torch.FloatTensor(self.not_done[ind]).to(self.device),
-            torch.FloatTensor(self.weights[ind]).to(self.device)
+            torch.FloatTensor(self.weights[ind]).to(self.device),
+            ind
         )
 
     
@@ -170,7 +171,7 @@ class ReplayBuffer(object):
             self.state_n = (self.state_n - mean)/std
         return mean, std
 
-    def replace_weights(self, weight, weight_func, exp_lambd=1.0, std=1.0, eps=0.0, eps_max=None):
+    def replace_oper_weights(self, weight, weight_func, exp_lambd=1.0, std=1.0, eps=0.0, eps_max=None):
         #? need set adv_prob_base?
         if weight_func == 'linear':
             weight = weight - weight.min()
@@ -190,6 +191,22 @@ class ReplayBuffer(object):
             prob = weight / weight.sum()
         self.probs = prob
 
+        self._replace_weight(prob)
+        
+    
+    def _replace_weight(self, prob):
+        prob = prob / prob.sum()
+        if self.reweight:
+            if len(prob.shape) == 1:
+                prob = np.expand_dims(prob, 1)
+            self.weights = prob * self.size
+        if self.resample:
+            self.sampler.replace_prob(self.probs)
+            
+    def _update_weight_by_idx(self, idx, weight,):
+        prob =  deepcopy(self.probs)
+        prob[idx] = weight
+        prob = prob / prob.sum()
         if self.reweight:
             if len(prob.shape) == 1:
                 prob = np.expand_dims(prob, 1)
