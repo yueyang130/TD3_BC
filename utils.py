@@ -201,7 +201,7 @@ class ReplayBuffer(object):
                 prob = np.expand_dims(prob, 1)
             self.weights = prob * self.size
         if self.resample:
-            self.sampler.replace_prob(self.probs)
+            self.sampler.replace_prob(prob)
             
     def _update_weight_by_idx(self, idx, weight,):
         prob =  deepcopy(self.probs)
@@ -212,4 +212,4 @@ class ReplayBuffer(object):
                 prob = np.expand_dims(prob, 1)
             self.weights = prob * self.size
         if self.resample:
-            self.sampler.replace_prob(self.probs)
+            self.sampler.replace_prob(prob)
