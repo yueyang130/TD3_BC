@@ -193,7 +193,7 @@ if __name__ == "__main__":
         replay_buffer.replace_oper_weights(weight, args.weight_func, args.exp_lambd, args.std, args.eps, args.eps_max)
 
     if args.online_per:
-        replay_buffer._replace_weight(np.ones(replay_buffer.size))
+        replay_buffer._set_priority(np.ones(replay_buffer.size))
 
     # Initialize policy
     policy = TD3_BC.TD3_BC(**kwargs)
@@ -238,12 +238,14 @@ if __name__ == "__main__":
             values0, values1, next_values = np.concatenate(values0), np.concatenate(values1), np.concatenate(next_values)
             tgt_q = rewards + not_dones * args.discount * next_values
             abs_td = np.abs(values0 - tgt_q) + np.abs(values1 - tgt_q)
-            replay_buffer._replace_weight(abs_td**args.per_temp)
+            replay_buffer._set_priority(abs_td**args.per_temp)
             
         # dynamically update priority
         if (t + 1) > args.init_step:
             priority = np.array(infos['abs_td'])**args.per_temp
-            replay_buffer._update_weight_by_idx(infos['idx'], priority)
+            replay_buffer._update_priority_by_idx(infos['idx'], priority)
+            wandb.log({f'train/priority_max': replay_buffer.priority.max()}, step=t+1)
+            wandb.log({f'train/priority_min': replay_buffer.priority.min()}, step=t+1)
             
         # if (t + 1) % 100 == 0:
         # 	dt = time.time() - time0

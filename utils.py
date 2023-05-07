@@ -191,22 +191,20 @@ class ReplayBuffer(object):
             prob = weight / weight.sum()
         self.probs = prob
 
-        self._replace_weight(prob)
-        
+        prob = prob / prob.sum()
+        self._set_prob(prob)
     
-    def _replace_weight(self, prob):
-        prob = prob / prob.sum()
-        if self.reweight:
-            if len(prob.shape) == 1:
-                prob = np.expand_dims(prob, 1)
-            self.weights = prob * self.size
-        if self.resample:
-            self.sampler.replace_prob(prob)
+    def _set_priority(self, priority):
+        self.priority = priority
+        prob = priority / priority.sum()
+        self._set_prob(prob)
             
-    def _update_weight_by_idx(self, idx, weight,):
-        prob =  deepcopy(self.probs)
-        prob[idx] = weight
-        prob = prob / prob.sum()
+    def _update_priority_by_idx(self, idx, indexed_priority,):
+        self.priority[idx] = indexed_priority
+        prob = self.priority / self.priority.sum()
+        self._set_prob(prob)
+            
+    def _set_prob(self, prob):
         if self.reweight:
             if len(prob.shape) == 1:
                 prob = np.expand_dims(prob, 1)
