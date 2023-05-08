@@ -98,7 +98,7 @@ if __name__ == "__main__":
     parser.add_argument("--reward_scale", default=1.0, type=float)
     parser.add_argument("--reward_bias", default=0, type=float)
     
-    parser.add_argument("--model_freq", default=10000, type=int)
+    parser.add_argument("--percent", default=1.0, type=float)
     
     
     args = parser.parse_args()
@@ -161,12 +161,13 @@ if __name__ == "__main__":
     wandb.init(project="TD3_BC", config={
             "env": args.env, "seed": args.seed, "tag": args.tag,
             "resample": args.resample, "two_sampler": args.two_sampler, "reweight": args.reweight, "p_base": args.base_prob,
+            "percent": args.percent,
             **kwargs
             })
 
     replay_buffer = utils.ReplayBuffer(state_dim, action_dim, args.batch_size,
         base_prob=args.base_prob, resample=args.resample, reweight=args.reweight, n_step=1, discount=args.discount)
-    replay_buffer.convert_D4RL(d4rl.qlearning_dataset(env))
+    replay_buffer.convert_D4RL(d4rl.qlearning_dataset(env), args.env, percent=args.percent)
     # save return dist
     # np.save(f'./weights/{args.env}_returns.npy', replay_buffer.returns)
     
@@ -209,9 +210,6 @@ if __name__ == "__main__":
 
     # time0 = time.time()
     evaluations = []
-    q1_models = []
-    q2_models = []
-    log_similairty = False
     QLIMIT = replay_buffer.reward.max() / (1-args.discount) * 1000
     for t in range(int(args.max_timesteps)):
         infos = policy.train(replay_buffer, args.two_sampler)
@@ -227,41 +225,7 @@ if __name__ == "__main__":
             # np.save(f"./results/{file_name}", evaluations)
             if args.save_model: policy.save(f"./models/{file_name}")
         
-        if not log_similairty and infos['Q1'] >  QLIMIT:
-            log_similairty = True
-            base_model_step = t+1
-            base_model1 = torch.cat([param.view(-1) for param in policy.critic.q1.parameters()])
-            base_model2 = torch.cat([param.view(-1) for param in policy.critic.q2.parameters()])
-            wandb.log({f'q1_similarity': 1}, step=t+1)
-            wandb.log({f'q2_similarity': 1}, step=t+1)
-            
-        if (t + 1) % args.model_freq == 0:
-            param1 = torch.cat([param.view(-1) for param in policy.critic.q1.parameters()])
-            param2 = torch.cat([param.view(-1) for param in policy.critic.q2.parameters()])
-            q1_models.append(param1)
-            q2_models.append(param2)
-            
-        if log_similairty and (t + 1) % args.model_freq == 0:
-            wandb.log({f'q1_similarity': cosine_similarity(base_model1, param1)}, step=t+1)
-            wandb.log({f'q2_similarity': cosine_similarity(base_model2, param2)}, step=t+1)
-            
-        
-    steps = [(t+1)*args.model_freq for t in range(len(q1_models))] 
-    sim1 = [cosine_similarity(m, q1_models[-1]) for m in q1_models]
-    sim2 = [cosine_similarity(m, q2_models[-1]) for m in q2_models]
     
-    data1 = [[x, y] for (x, y) in zip(steps, sim1)]
-    table1 = wandb.Table(data=data1, columns = ["steps", "similarity"])
-    wandb.log(
-{"cosine similarity of q1" : wandb.plot.line(table1, "steps", "similarity",
-        title="cosine similarity of q1")})   
-    
-    data2 = [[x, y] for (x, y) in zip(steps, sim2)]
-    table2 = wandb.Table(data=data2, columns = ["steps", "similarity"])
-    wandb.log(
-{"cosine similarity of q2" : wandb.plot.line(table2, "steps", "similarity",
-        title="cosine similarity of q2")})  
-    wandb.finish() 
     
         # if (t + 1) % 100 == 0:
         # 	dt = time.time() - time0

@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-
+import os
 
 class RandSampler(object):
     def __init__(self, max_size: int, batch_size: int = 1) -> None:
@@ -93,7 +93,7 @@ class ReplayBuffer(object):
         )
 
     
-    def convert_D4RL(self, dataset):
+    def convert_D4RL(self, dataset, dataset_name, percent):
         self.state = dataset['observations']
         self.action = dataset['actions']
         self.next_state = dataset['next_observations']
@@ -128,6 +128,19 @@ class ReplayBuffer(object):
             self.weights = self.probs * self.size
         else:
             self.weights = np.ones_like(self.probs)
+            
+        if percent < 1:
+            path = f'../data_index/{dataset_name}_{percent}.npy'
+            idx = np.load(path)
+            self.state = self.state[idx]
+            self.action = self.action[idx]
+            self.next_state = self.next_state[idx]
+            self.reward = self.reward[idx]
+            self.not_done = self.not_done[idx]
+            self.dones_float = self.dones_float[idx]
+            self.weights = self.weights[idx]
+            self.probs = self.probs[idx]
+            self.size = self.state.shape[0]
 
         if self.resample:
             self.sampler = PrefetchBalancedSampler(self.probs, self.size, self.batch_size, n_prefetch=1000)

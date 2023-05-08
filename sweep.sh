@@ -23,3 +23,11 @@ TAG=similarity_v2 TASK=gym ALPHA=2.5 BC_COEF=0 TAU=1.0 bash launch_job_slurm.sh
 
 TAG=similarity_v2_1000 TASK=gym ALPHA=2.5 BC_COEF=0 TAU=1.0 bash launch_job_slurm.sh
 
+
+TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 bash launch_job_slurm.sh
+TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.1 bash launch_job_slurm.sh
+TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.01 bash launch_job_slurm.sh
+TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.01 bash launch_job_slurm.sh
+TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 bash launch_job_slurm.sh
+TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.5 bash launch_job_slurm.sh
+
