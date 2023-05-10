@@ -99,6 +99,9 @@ if __name__ == "__main__":
     parser.add_argument("--reward_bias", default=0, type=float)
     
     parser.add_argument("--percent", default=1.0, type=float)
+    parser.add_argument("--last_act_bound", default=1.0, type=float)
+    parser.add_argument("--weight_decay", default=0, type=float)
+    parser.add_argument("--dropout_prob", default=0, type=float)
     
     
     args = parser.parse_args()
@@ -156,6 +159,9 @@ if __name__ == "__main__":
         "reweight_improve": args.reweight_improve,
         "reweight_constraint": args.reweight_constraint,
         "clip_constraint": args.clip_constraint,
+        "last_act_bound": args.last_act_bound,
+        "weight_decay": args.weight_decay,
+        "dropout_prob": args.dropout_prob,
     }
 
     wandb.init(project="TD3_BC", config={

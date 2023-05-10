@@ -33,3 +33,15 @@ TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.5 bash l
 
 TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=2 PERCENT=0.1 bash launch_job_slurm.sh
 TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=3 PERCENT=0.1 bash launch_job_slurm.sh
+TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=4 LAST_ACT_BOUND=1.0 PERCENT=0.1 bash launch_job_slurm.sh
+TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=4 LAST_ACT_BOUND=10.0 PERCENT=0.1 bash launch_job_slurm.sh
+TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=5 LAST_ACT_BOUND=1000.0 PERCENT=0.1 bash launch_job_slurm.sh
+TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=6 PERCENT=0.1 bash launch_job_slurm.sh # batch norm
+
+
+TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 WEIGHT_DECAY=0.01 bash launch_job_slurm.sh
+TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 WEIGHT_DECAY=0.001 bash launch_job_slurm.sh
+TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 WEIGHT_DECAY=0.0001 bash launch_job_slurm.sh
+
+TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 DROPOUT=0.1 bash launch_job_slurm.sh
+TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 DROPOUT=0.5 bash launch_job_slurm.sh

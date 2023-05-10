@@ -8,6 +8,15 @@ from functools import partial
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+class Clip(nn.Module):
+    def __init__(self, min_val, max_val):
+        super(Clip, self).__init__()
+        self.min_val = min_val
+        self.max_val = max_val
+
+    def forward(self, x):
+        return torch.clamp(x, self.min_val, self.max_val)
+
 
 class WeightNorm(nn.Module):
     append_g = '_g'
@@ -69,7 +78,7 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(self, state_dim, action_dim, layernorm, hidden_dim=256):
+    def __init__(self, state_dim, action_dim, layernorm, hidden_dim=256, last_act_bound=1, dropout_prob=0):
         super(Critic, self).__init__()
   
         # # Q1 architecture
@@ -81,24 +90,70 @@ class Critic(nn.Module):
         # self.l4 = nn.Linear(state_dim + action_dim, 256)
         # self.l5 = nn.Linear(256, 256)
         # self.l6 = nn.Linear(256, 1)
-        if layernorm == 0 or layernorm==1:
+        if layernorm in [0,1,6]:
+            if layernorm == 0:
+                normalization = nn.Identity()
+            if layernorm == 1:
+                normalization = nn.LayerNorm(hidden_dim)
+            if layernorm == 6:
+                normalization = nn.BatchNorm1d(hidden_dim)
+            
+            
             self.q1 = nn.Sequential(
                 nn.Linear(state_dim + action_dim, hidden_dim),
-                nn.LayerNorm(hidden_dim) if layernorm else nn.Identity(),
+                normalization,
                 nn.ReLU(),
+                nn.Dropout(dropout_prob),
                 nn.Linear(hidden_dim, hidden_dim),
-                nn.LayerNorm(hidden_dim) if layernorm else nn.Identity(),
+                normalization,
                 nn.ReLU(),
+                nn.Dropout(dropout_prob),
                 nn.Linear(hidden_dim, 1)
             )
             self.q2 = nn.Sequential(
                 nn.Linear(state_dim + action_dim, hidden_dim),
-                nn.LayerNorm(hidden_dim) if layernorm else nn.Identity(),
+                normalization,
+                nn.ReLU(),
+                nn.Dropout(dropout_prob),
+                nn.Linear(hidden_dim, hidden_dim),
+                normalization,
+                nn.ReLU(),
+                nn.Dropout(dropout_prob),
+                nn.Linear(hidden_dim, 1)
+            )
+        elif layernorm == 4:        
+            self.q1 = nn.Sequential(
+                nn.Linear(state_dim + action_dim, hidden_dim),
                 nn.ReLU(),
                 nn.Linear(hidden_dim, hidden_dim),
-                nn.LayerNorm(hidden_dim) if layernorm else nn.Identity(),
                 nn.ReLU(),
+                Clip(0, last_act_bound),
                 nn.Linear(hidden_dim, 1)
+            )
+            self.q2 = nn.Sequential(
+                nn.Linear(state_dim + action_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.ReLU(),
+                Clip(0, last_act_bound),
+                nn.Linear(hidden_dim, 1)
+            )
+        elif layernorm == 5:        
+            self.q1 = nn.Sequential(
+                nn.Linear(state_dim + action_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, 1),
+                Clip(0, last_act_bound),
+            )
+            self.q2 = nn.Sequential(
+                nn.Linear(state_dim + action_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, 1),
+                Clip(0, last_act_bound),
             )
         else:
             if layernorm == 2:
@@ -120,6 +175,8 @@ class Critic(nn.Module):
                 nn.ReLU(),
                 normalization(nn.Linear(hidden_dim, 1))
             )
+            
+        
 
 
     def forward(self, state, action):
@@ -150,6 +207,9 @@ class TD3_BC(object):
         alpha=2.5,
         bc_coef=1.0,
         qf_layer_norm=False,
+        last_act_bound=1.0,
+        weight_decay=0,
+        dropout_prob=0,
         **kwargs,
     ):
 
@@ -157,9 +217,9 @@ class TD3_BC(object):
         self.actor_target = copy.deepcopy(self.actor)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=3e-4)
 
-        self.critic = Critic(state_dim, action_dim, qf_layer_norm).to(device)
+        self.critic = Critic(state_dim, action_dim, qf_layer_norm, last_act_bound=last_act_bound, dropout_prob=dropout_prob).to(device)
         self.critic_target = copy.deepcopy(self.critic)
-        self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=3e-4)
+        self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=3e-4, weight_decay=weight_decay)
 
         self.max_action = max_action
         self.discount = discount
