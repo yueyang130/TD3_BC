@@ -93,7 +93,7 @@ if __name__ == "__main__":
     parser.add_argument("--clip_constraint", default=0, type=int)  # 0: no clip; 1: hard clip; 2 soft clip
     parser.add_argument("--tag", default='', type=str)
     # new params
-    parser.add_argument("--qf_layer_norm", default=0, type=int)
+    parser.add_argument("--qf_layer_norm", default=0, type=int) # 0: None; 1: layer norm; 2: weight norm; 3: spectrum norm
     parser.add_argument("--bc_coef", default=1.0, type=float)
     parser.add_argument("--reward_scale", default=1.0, type=float)
     parser.add_argument("--reward_bias", default=0, type=float)

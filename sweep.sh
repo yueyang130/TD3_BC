@@ -31,3 +31,5 @@ TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.01 bash 
 TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 bash launch_job_slurm.sh
 TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.5 bash launch_job_slurm.sh
 
+TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=2 PERCENT=0.1 bash launch_job_slurm.sh
+TAG=percent_other_norm TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=3 PERCENT=0.1 bash launch_job_slurm.sh
