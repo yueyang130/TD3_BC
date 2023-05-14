@@ -18,12 +18,13 @@ PERCENT="${PERCENT:-1.0}"
 LAST_ACT_BOUND="${LAST_ACT_BOUND:-1.0}"
 WEIGHT_DECAY="${WEIGHT_DECAY:-0}"
 DROPOUT="${DROPOUT:-0}"
+TRAJ="${TRAJ:-0}"
 
 
 # BASE_CMD="WANDB_API_KEY=$WANDB_API_KEY python main.py --bc_eval=0 --alpha=$ALPHA --bc_coef=$BC_COEF --qf_layer_norm=$QF_LAYER_NORM --reward_scale=$REW_SCALE \
 # --reward_bias=$REW_BIAS --online_per=$ONLINE_PER --per_temp=$PER_TEMP --tag=$TAG"
 BASE_CMD="WANDB_API_KEY=$WANDB_API_KEY python main.py --bc_eval=0 --alpha=$ALPHA --bc_coef=$BC_COEF --qf_layer_norm=$QF_LAYER_NORM --reward_scale=$REW_SCALE \
---reward_bias=$REW_BIAS --percent=$PERCENT --last_act_bound=$LAST_ACT_BOUND --weight_decay=$WEIGHT_DECAY --dropout_prob=$DROPOUT --tag=$TAG"
+--reward_bias=$REW_BIAS --percent=$PERCENT --traj=$TRAJ --last_act_bound=$LAST_ACT_BOUND --weight_decay=$WEIGHT_DECAY --dropout_prob=$DROPOUT --tag=$TAG"d
 
 if [ "$RESAMPLE" = "True" ];then
   BASE_CMD="$BASE_CMD --resample"

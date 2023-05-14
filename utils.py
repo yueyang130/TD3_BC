@@ -93,7 +93,7 @@ class ReplayBuffer(object):
         )
 
     
-    def convert_D4RL(self, dataset, dataset_name, percent):
+    def convert_D4RL(self, dataset, dataset_name, percent, traj):
         self.state = dataset['observations']
         self.action = dataset['actions']
         self.next_state = dataset['next_observations']
@@ -130,7 +130,10 @@ class ReplayBuffer(object):
             self.weights = np.ones_like(self.probs)
             
         if percent < 1:
-            path = f'../data_index/{dataset_name}_{percent}.npy'
+            if traj:
+                path = f'../traj_index/{dataset_name}_{percent}.npy'
+            else:
+                path = f'../data_index/{dataset_name}_{percent}.npy'
             idx = np.load(path)
             self.state = self.state[idx]
             self.action = self.action[idx]

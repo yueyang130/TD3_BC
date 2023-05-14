@@ -99,6 +99,7 @@ if __name__ == "__main__":
     parser.add_argument("--reward_bias", default=0, type=float)
     
     parser.add_argument("--percent", default=1.0, type=float)
+    parser.add_argument("--traj", default=0, type=int)
     parser.add_argument("--last_act_bound", default=1.0, type=float)
     parser.add_argument("--weight_decay", default=0, type=float)
     parser.add_argument("--dropout_prob", default=0, type=float)
@@ -167,13 +168,13 @@ if __name__ == "__main__":
     wandb.init(project="TD3_BC", config={
             "env": args.env, "seed": args.seed, "tag": args.tag,
             "resample": args.resample, "two_sampler": args.two_sampler, "reweight": args.reweight, "p_base": args.base_prob,
-            "percent": args.percent,
+            "percent": args.percent, "traj": args.traj,
             **kwargs
             })
 
     replay_buffer = utils.ReplayBuffer(state_dim, action_dim, args.batch_size,
         base_prob=args.base_prob, resample=args.resample, reweight=args.reweight, n_step=1, discount=args.discount)
-    replay_buffer.convert_D4RL(d4rl.qlearning_dataset(env), args.env, percent=args.percent)
+    replay_buffer.convert_D4RL(d4rl.qlearning_dataset(env), args.env, percent=args.percent, traj=args.traj)
     # save return dist
     # np.save(f'./weights/{args.env}_returns.npy', replay_buffer.returns)
     

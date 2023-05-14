@@ -26,8 +26,8 @@ TAG=similarity_v2_1000 TASK=gym ALPHA=2.5 BC_COEF=0 TAU=1.0 bash launch_job_slur
 
 TAG=percent_v2 START=2 RUNS=3 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 bash launch_job_slurm.sh
 TAG=percent_v2 START=2 RUNS=3 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.1 bash launch_job_slurm.sh
-TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.01 bash launch_job_slurm.sh
-TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.01 bash launch_job_slurm.sh
+TAG=percent_v2 START=2 RUNS=3 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.01 bash launch_job_slurm.sh
+TAG=percent_v2 START=2 RUNS=3 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.01 bash launch_job_slurm.sh
 TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 bash launch_job_slurm.sh
 TAG=percent_v2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.5 bash launch_job_slurm.sh
 
@@ -45,3 +45,12 @@ TAG=percent_other_norm START=2 RUNS=3 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NO
 
 TAG=percent_other_norm START=2 RUNS=3 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 DROPOUT=0.1 bash launch_job_slurm.sh
 TAG=percent_other_norm START=2 RUNS=3 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 DROPOUT=0.5 bash launch_job_slurm.sh
+
+TAG=percent_v2 START=1 RUNS=2 TASK=gym ALPHA=2.5 BC_COEF=3.0 QF_LAYER_NORM=0 PERCENT=0.1 bash launch_job_slurm.sh
+TAG=percent_v2 START=1 RUNS=2 TASK=gym ALPHA=2.5 BC_COEF=10.0 QF_LAYER_NORM=0 PERCENT=0.1 bash launch_job_slurm.sh
+
+TAG=percent_traj START=3 RUNS=3 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 TRAJ=1 bash launch_job_slurm.sh
+TAG=percent_traj START=1 RUNS=2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.1 TRAJ=1 bash launch_job_slurm.sh
+
+TAG=percent_traj START=1 RUNS=2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.01 TRAJ=1 bash launch_job_slurm.sh
+TAG=percent_traj START=1 RUNS=2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.01 TRAJ=1 bash launch_job_slurm.sh
