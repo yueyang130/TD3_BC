@@ -9,6 +9,7 @@ import utils
 import TD3_BC
 import time
 
+
 def cosine_similarity(m1, m2):
 
     dot_product = torch.dot(m1, m2)
@@ -17,6 +18,97 @@ def cosine_similarity(m1, m2):
 
     similarity = dot_product / (m1_norm * m2_norm)
     return similarity.item()
+
+def cosine_similarity_matrix(input_tensor):
+
+    # Normalize the input tensor along the feature dimension (n_dim)
+    normalized_input = F.normalize(input_tensor, p=2, dim=1)
+
+    # Calculate the dot product between the normalized tensors to get the cosine similarity matrix
+    cosine_similarity_matrix = torch.mm(normalized_input, normalized_input.t()).cpu()
+
+    # Create a diagonal mask and set the diagonal elements to zero
+    mask = torch.eye(input_tensor.shape[0]).bool()
+
+    # Apply the mask to the cosine similarity matrix
+    cosine_similarity_matrix.masked_fill_(mask, 0)
+
+    # Reshape the result to a one-dimensional tensor
+    return cosine_similarity_matrix.flatten()
+
+
+def compute_ntk(model, states, actions):
+    N = states.size(0)
+
+    # Function to flatten gradients of model parameters
+    def flatten_grads(grads):
+        return torch.cat([g.view(-1) for g in grads])
+
+    # Compute gradients for each input
+    grads = []
+    for i in range(N):
+        s = states[i].unsqueeze(0)
+        a = actions[i].unsqueeze(0)
+
+        # Feedforward the input through the model
+        output = model.Q1(s,a)
+
+        # Zero the model's gradients
+        model.zero_grad()
+
+        # Compute and store the gradients for each output dimension
+        output.backward()
+        grad = flatten_grads([p.grad for p in model.q1.parameters() if p.grad is not None])
+
+        # Stack gradients for the current input
+        grads.append(grad)
+
+    # Stack gradients for all inputs
+    # divide a constant to prevent NAN
+    grads_tensor = torch.stack(grads) / (grad.shape[0])**0.5
+
+    # Compute the NTK matrix using tensor operations
+    G = torch.matmul(grads_tensor, grads_tensor.t())
+
+    return G.detach(), grads_tensor.detach()
+
+def compute_detect_matrix(model, states, pi, batch_grads):
+    N = states.size(0)
+
+    # Function to flatten gradients of model parameters
+    def flatten_grads(grads):
+        return torch.cat([g.view(-1) for g in grads])
+
+    # Compute gradients for each input
+    grads = []
+    for i in range(N):
+        s = states[i].unsqueeze(0)
+        a = pi[i].unsqueeze(0)
+
+        # Feedforward the input through the model
+        output = model.Q1(s,a)
+
+        # Zero the model's gradients
+        model.zero_grad()
+
+        # Compute and store the gradients for each output dimension
+        output.backward()
+        grad = flatten_grads([p.grad for p in model.q1.parameters() if p.grad is not None])
+
+        # Stack gradients for the current input
+        grads.append(grad)
+
+    # Stack gradients for all inputs
+    # divide a constant to prevent NAN
+    pi_grads = torch.stack(grads).detach() / (grad.shape[0])**0.5
+    
+    detect_matrix = args.discount * torch.matmul(pi_grads, batch_grads.t()) - torch.matmul(batch_grads, batch_grads.t()) 
+    # eigenvalues = torch.linalg.eigvalsh(detect_matrix)
+    eigenvalues = torch.linalg.eigvals(detect_matrix)
+    
+    eigenvalues = eigenvalues.real
+    return detect_matrix, eigenvalues, eigenvalues/(torch.pow(detect_matrix,2).sum()**0.5)
+        
         
 
 # Runs policy for X episodes and returns D4RL score
@@ -103,6 +195,7 @@ if __name__ == "__main__":
     parser.add_argument("--last_act_bound", default=1.0, type=float)
     parser.add_argument("--weight_decay", default=0, type=float)
     parser.add_argument("--dropout_prob", default=0, type=float)
+    parser.add_argument("--model_freq", default=10000, type=int)
     
     
     args = parser.parse_args()
@@ -215,10 +308,14 @@ if __name__ == "__main__":
         policy_file = file_name if args.load_model == "default" else args.load_model
         policy.load(f"./models/{policy_file}")
 
+    fix_batch = replay_buffer.sample(uniform=True, bs=2560)
+    ntk_states, ntk_actions, ntk_next_states = fix_batch[:3] 
+
     # time0 = time.time()
     evaluations = []
     QLIMIT = replay_buffer.reward.max() / (1-args.discount) * 1000
     for t in range(int(args.max_timesteps)):
+        policy.critic.train()
         infos = policy.train(replay_buffer, args.two_sampler)
         if (t + 1) % args.log_freq == 0:
             for k, v in infos.items():
@@ -232,8 +329,19 @@ if __name__ == "__main__":
             # np.save(f"./results/{file_name}", evaluations)
             if args.save_model: policy.save(f"./models/{file_name}")
         
-    
-    
+        if (t + 1) % args.model_freq == 0:
+            policy.critic.eval()
+            ntk, batch_grads = compute_ntk(policy.critic, ntk_states, ntk_actions)
+            with torch.no_grad():
+                fix_batch_next_pi = policy.actor(ntk_next_states)
+            detect_matrix, eigenvalues, normed_eigenvalues = compute_detect_matrix(policy.critic, ntk_next_states, fix_batch_next_pi, batch_grads)
+
+            wandb.log({
+                'train/max_eigenvalues': eigenvalues.max().cpu(),
+                # 'stat/eigenvalues': eigenvalues.cpu(),
+                'train/max_normed_eigenvalues': normed_eigenvalues.max().cpu(),
+                # 'stat/normed_eigenvalues': normed_eigenvalues.cpu(),
+                }, step=t+1)
         # if (t + 1) % 100 == 0:
         # 	dt = time.time() - time0
         # 	time0 += dt

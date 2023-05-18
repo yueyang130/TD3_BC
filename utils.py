@@ -77,10 +77,11 @@ class ReplayBuffer(object):
         )
 
 
-    # use for training
-    def sample(self, uniform=False):
+     # use for training
+    def sample(self, uniform=False, bs=None):
         if uniform:
-            ind = np.random.randint(self.size, size=self.batch_size)
+            bs = bs or self.batch_size
+            ind = np.random.randint(self.size, size=bs)
         else:
             ind = self.sampler.sample()    
         return (
