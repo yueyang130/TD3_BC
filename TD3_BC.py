@@ -281,7 +281,7 @@ class TD3_BC(object):
         ).clamp(-self.max_action, self.max_action)
 
         # Compute the target Q value
-        target_Q1, target_Q2, phi_q1_prime, phi_q2_prime = self.critic_target(next_state, next_action)
+        target_Q1, target_Q2, _, _ = self.critic_target(next_state, next_action)
         target_Q = torch.min(target_Q1, target_Q2).detach()
         target_Q = reward + not_done * self.discount * target_Q
 
@@ -295,6 +295,7 @@ class TD3_BC(object):
             critic_loss *= weight
         
         if self.dr3_coef > 0:
+            _, _, phi_q1_prime, phi_q2_prime = self.critic(next_state, next_action)
             dr3_loss = torch.sum(phi_q1_prime * phi_q1, dim=1).mean() + torch.sum(phi_q2_prime * phi_q2, dim=1).mean()
             critic_loss += dr3_loss * self.dr3_coef
         
