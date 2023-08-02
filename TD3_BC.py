@@ -179,9 +179,27 @@ class Critic(nn.Module):
         
 
 
+    # def forward(self, state, action):
+    #     sa = torch.cat([state, action], 1)
+    #     return self.q1(sa), self.q2(sa)
+    
     def forward(self, state, action):
         sa = torch.cat([state, action], 1)
-        return self.q1(sa), self.q2(sa)
+
+        # Passing the input through all layers except the last one to get the penultimate output
+        penultimate_q1 = sa
+        for layer in self.q1[:-1]:
+            penultimate_q1 = layer(penultimate_q1)
+
+        penultimate_q2 = sa
+        for layer in self.q2[:-1]:
+            penultimate_q2 = layer(penultimate_q2)
+
+        # Passing the penultimate output through the last layer to get the final output
+        final_q1 = self.q1[-1](penultimate_q1)
+        final_q2 = self.q2[-1](penultimate_q2)
+
+        return final_q1, final_q2, penultimate_q1, penultimate_q2
 
 
     def Q1(self, state, action):
@@ -210,6 +228,7 @@ class TD3_BC(object):
         last_act_bound=1.0,
         weight_decay=0,
         dropout_prob=0,
+        dr3_coef=0,
         **kwargs,
     ):
 
@@ -229,6 +248,7 @@ class TD3_BC(object):
         self.policy_freq = policy_freq
         self.alpha = alpha
         self.bc_coef = bc_coef
+        self.dr3_coef = dr3_coef
 
         self.reweight_eval = reweight_eval
         self.reweight_improve = reweight_improve
@@ -251,28 +271,33 @@ class TD3_BC(object):
         else:
             state, action, next_state, reward, not_done, weight = replay_buffer.sample()
 
-        with torch.no_grad():
-            # Select action according to policy and add clipped noise
-            noise = (
-                torch.randn_like(action) * self.policy_noise
-            ).clamp(-self.noise_clip, self.noise_clip)
-            
-            next_action = (
-                self.actor_target(next_state) + noise
-            ).clamp(-self.max_action, self.max_action)
+        # Select action according to policy and add clipped noise
+        noise = (
+            torch.randn_like(action) * self.policy_noise
+        ).clamp(-self.noise_clip, self.noise_clip)
+        
+        next_action = (
+            self.actor_target(next_state) + noise
+        ).clamp(-self.max_action, self.max_action)
 
-            # Compute the target Q value
-            target_Q1, target_Q2 = self.critic_target(next_state, next_action)
-            target_Q = torch.min(target_Q1, target_Q2)
-            target_Q = reward + not_done * self.discount * target_Q
+        # Compute the target Q value
+        target_Q1, target_Q2, phi_q1_prime, phi_q2_prime = self.critic_target(next_state, next_action)
+        target_Q = torch.min(target_Q1, target_Q2).detach()
+        target_Q = reward + not_done * self.discount * target_Q
 
         # Get current Q estimates
-        current_Q1, current_Q2 = self.critic(state, action)
+        current_Q1, current_Q2, phi_q1, phi_q2 = self.critic(state, action)
+        
 
         # Compute critic loss
         critic_loss = F.mse_loss(current_Q1, target_Q, reduction='none') + F.mse_loss(current_Q2, target_Q, reduction='none')
         if self.reweight_eval:
             critic_loss *= weight
+        
+        if self.dr3_coef > 0:
+            dr3_loss = torch.sum(phi_q1_prime * phi_q1, dim=1).mean() + torch.sum(phi_q2_prime * phi_q2, dim=1).mean()
+            critic_loss += dr3_loss * self.dr3_coef
+        
         critic_loss = critic_loss.mean()
 
         # Optimize the critic
@@ -326,6 +351,7 @@ class TD3_BC(object):
                 "critic_loss": critic_loss.mean().cpu(),
                 "actor_loss": actor_loss.mean().cpu(),
                 "constraint_loss": constraint_loss.mean().cpu(),
+                "dr3_loss": dr3_loss.mean().cpu(),
                 "lambda": lmbda.cpu(), 
             }
 

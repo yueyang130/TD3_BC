@@ -189,6 +189,7 @@ if __name__ == "__main__":
     parser.add_argument("--bc_coef", default=1.0, type=float)
     parser.add_argument("--reward_scale", default=1.0, type=float)
     parser.add_argument("--reward_bias", default=0, type=float)
+    parser.add_argument("--dr3_coef", default=0.0, type=float)
     
     parser.add_argument("--percent", default=1.0, type=float)
     parser.add_argument("--traj", default=0, type=int)
@@ -256,6 +257,7 @@ if __name__ == "__main__":
         "last_act_bound": args.last_act_bound,
         "weight_decay": args.weight_decay,
         "dropout_prob": args.dropout_prob,
+        "dr3_coef": args.dr3_coef,
     }
 
     wandb.init(project="TD3_BC", config={
