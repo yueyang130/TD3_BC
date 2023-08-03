@@ -107,9 +107,17 @@ TAG=DR3 START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.
 TAG=DR3 START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 DR3_COEF=1.0 bash launch_job_slurm.sh
 TAG=DR3 START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 DR3_COEF=10.0 bash launch_job_slurm.sh
 
+# OPER for transitions
 TAG=OPER-percent START=1 RUNS=2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 BC_EVAL=1 RESAMPLE=True bash launch_job_slurm.sh
 TAG=percent_v2 START=2 RUNS=2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 bash launch_job_slurm.sh
 
+# ablate ema, double-q, LN
+TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 DOUBLE_Q=0 TAU=1.0 bash launch_job_slurm.sh
+TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 DOUBLE_Q=0 bash launch_job_slurm.sh
+TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 bash launch_job_slurm.sh
+# TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.5 bash launch_job_slurm.sh
 
-CUDA_VISIBLE_DEVICES=2 WANDB_API_KEY=3e0863e2d8f819730b85529bd24b3ebbb96d0eb3 python main.py --bc_eval=0 --alpha=2.5 --bc_coef=1.0 --qf_layer_norm=0 --reward_scale=1 --reward_bias=0 --percent=0.1 --traj=0 --last_act_bound=1.0 --weight_decay=0 --dropout_prob=0 --tau=0.005 --dr3_coef=0.0001 --tag=DR3 --seed=1 --env=walker2d-medium-expert-v2 &
+
+
+
 

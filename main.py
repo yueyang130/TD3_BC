@@ -7,6 +7,7 @@ import d4rl
 import wandb
 import utils
 import TD3_BC
+import DDPG_BC
 import time
 
 
@@ -197,6 +198,7 @@ if __name__ == "__main__":
     parser.add_argument("--weight_decay", default=0, type=float)
     parser.add_argument("--dropout_prob", default=0, type=float)
     parser.add_argument("--model_freq", default=10000, type=int)
+    parser.add_argument("--double_q", default=1, type=int)
     
     
     args = parser.parse_args()
@@ -263,7 +265,7 @@ if __name__ == "__main__":
     wandb.init(project="TD3_BC", config={
             "env": args.env, "seed": args.seed, "tag": args.tag,
             "resample": args.resample, "two_sampler": args.two_sampler, "reweight": args.reweight, "p_base": args.base_prob,
-            "percent": args.percent, "traj": args.traj,
+            "percent": args.percent, "traj": args.traj, "double_q": args.double_q,
             **kwargs
             })
 
@@ -307,7 +309,11 @@ if __name__ == "__main__":
     replay_buffer.subset(args.env, percent=args.percent, traj=args.traj)
 
     # Initialize policy
-    policy = TD3_BC.TD3_BC(**kwargs)
+    if args.double_q:
+        policy = TD3_BC.TD3_BC(**kwargs)
+    else:
+        print('DDPG')
+        policy = DDPG_BC.DDPG_BC(**kwargs)
 
     if args.load_model != "":
         policy_file = file_name if args.load_model == "default" else args.load_model
