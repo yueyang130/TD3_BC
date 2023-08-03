@@ -21,18 +21,20 @@ DROPOUT="${DROPOUT:-0}"
 TRAJ="${TRAJ:-0}"
 TAU="${TAU:-0.005}"
 DR3_COEF="${DR3_COEF:-0.0}"
+BC_EVAL="${BC_EVAL:-0}"
 
-
-# BASE_CMD="WANDB_API_KEY=$WANDB_API_KEY python main.py --bc_eval=0 --alpha=$ALPHA --bc_coef=$BC_COEF --qf_layer_norm=$QF_LAYER_NORM --reward_scale=$REW_SCALE \
+# BASE_CMD="WANDB_API_KEY=$WANDB_API_KEY python main.py --bc_eval=$BC_EVAL --alpha=$ALPHA --bc_coef=$BC_COEF --qf_layer_norm=$QF_LAYER_NORM --reward_scale=$REW_SCALE \
 # --reward_bias=$REW_BIAS --online_per=$ONLINE_PER --per_temp=$PER_TEMP --tag=$TAG"
-BASE_CMD="WANDB_API_KEY=$WANDB_API_KEY python main.py --bc_eval=0 --alpha=$ALPHA --bc_coef=$BC_COEF --qf_layer_norm=$QF_LAYER_NORM --reward_scale=$REW_SCALE \
+BASE_CMD="WANDB_API_KEY=$WANDB_API_KEY python main.py --bc_eval=$BC_EVAL --alpha=$ALPHA --bc_coef=$BC_COEF --qf_layer_norm=$QF_LAYER_NORM --reward_scale=$REW_SCALE \
 --reward_bias=$REW_BIAS --percent=$PERCENT --traj=$TRAJ --last_act_bound=$LAST_ACT_BOUND --weight_decay=$WEIGHT_DECAY --dropout_prob=$DROPOUT --tau=$TAU --dr3_coef=$DR3_COEF --tag=$TAG"
 
 if [ "$RESAMPLE" = "True" ];then
   BASE_CMD="$BASE_CMD --resample"
 fi
 
-
+if [ "$BC_EVAL" = 1 ];then
+  BASE_CMD="$BASE_CMD --two_sampler"
+fi
 
 for (( i=$START; i<=${RUNS}; i++ ))
 do

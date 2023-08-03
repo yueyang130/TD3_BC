@@ -154,7 +154,7 @@ if __name__ == "__main__":
     parser.add_argument("--load_model", default="")                 # Model load file name, "" doesn't load, "default" uses file_name
     # load weight
     parser.add_argument("--bc_eval", type=int, default=1)   
-    parser.add_argument("--weight_num", type=int, default=2, help='how many weights to compute avg')       
+    parser.add_argument("--weight_num", type=int, default=3, help='how many weights to compute avg')       
     parser.add_argument("--weight_ensemble", type=str, default='mean', help='how to aggregate weights over runnings')       
     parser.add_argument("--weight_path", type=str, help='bc adv path')       
     parser.add_argument("--iter", type=int, default=5, help='K th rebalanced behavior policy.')       
@@ -269,7 +269,7 @@ if __name__ == "__main__":
 
     replay_buffer = utils.ReplayBuffer(state_dim, action_dim, args.batch_size,
         base_prob=args.base_prob, resample=args.resample, reweight=args.reweight, n_step=1, discount=args.discount)
-    replay_buffer.convert_D4RL(d4rl.qlearning_dataset(env), args.env, percent=args.percent, traj=args.traj)
+    replay_buffer.convert_D4RL(d4rl.qlearning_dataset(env))
     # save return dist
     # np.save(f'./weights/{args.env}_returns.npy', replay_buffer.returns)
     
@@ -286,10 +286,10 @@ if __name__ == "__main__":
         weight_list = []
         for seed in range(1, args.weight_num + 1):
             try:
-                file_name = args.weight_path%seed
+                file_name = f'{args.env}_{seed}'
             except:
                 file_name = args.weight_path # load the speificed weight
-            wp =  f'./weights/{file_name}.npy'
+            wp =  f'../weights/{file_name}.npy'
             eval_res = np.load(wp, allow_pickle=True).item()
             num_iter, bc_eval_steps = eval_res['iter'], eval_res['eval_steps']
             assert args.iter <= num_iter
@@ -302,6 +302,9 @@ if __name__ == "__main__":
         else:
             raise NotImplementedError
         replay_buffer.replace_weights(weight, args.weight_func, args.exp_lambd, args.std, args.eps, args.eps_max)
+
+    # sample subset
+    replay_buffer.subset(args.env, percent=args.percent, traj=args.traj)
 
     # Initialize policy
     policy = TD3_BC.TD3_BC(**kwargs)

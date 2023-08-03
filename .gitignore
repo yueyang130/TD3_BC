@@ -10,3 +10,4 @@ results
 wandb
 .vscode
 weights
+*.ipynb

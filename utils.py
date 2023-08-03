@@ -94,7 +94,7 @@ class ReplayBuffer(object):
         )
 
     
-    def convert_D4RL(self, dataset, dataset_name, percent, traj):
+    def convert_D4RL(self, dataset):
         self.state = dataset['observations']
         self.action = dataset['actions']
         self.next_state = dataset['next_observations']
@@ -129,22 +129,6 @@ class ReplayBuffer(object):
             self.weights = self.probs * self.size
         else:
             self.weights = np.ones_like(self.probs)
-            
-        if percent < 1:
-            if traj:
-                path = f'../traj_index/{dataset_name}_{percent}.npy'
-            else:
-                path = f'../data_index/{dataset_name}_{percent}.npy'
-            idx = np.load(path)
-            self.state = self.state[idx]
-            self.action = self.action[idx]
-            self.next_state = self.next_state[idx]
-            self.reward = self.reward[idx]
-            self.not_done = self.not_done[idx]
-            self.dones_float = self.dones_float[idx]
-            self.weights = self.weights[idx]
-            self.probs = self.probs[idx]
-            self.size = self.state.shape[0]
 
         if self.resample:
             self.sampler = PrefetchBalancedSampler(self.probs, self.size, self.batch_size, n_prefetch=1000)
@@ -213,3 +197,27 @@ class ReplayBuffer(object):
             self.weights = prob * self.size
         if self.resample:
             self.sampler.replace_prob(self.probs)
+            
+            
+    def subset(self, dataset_name, percent, traj):
+        if percent < 1:
+            if traj:
+                path = f'../traj_index/{dataset_name}_{percent}.npy'
+            else:
+                path = f'../data_index/{dataset_name}_{percent}.npy'
+            idx = np.load(path)
+            self.state = self.state[idx]
+            self.action = self.action[idx]
+            self.next_state = self.next_state[idx]
+            self.reward = self.reward[idx]
+            self.not_done = self.not_done[idx]
+            self.dones_float = self.dones_float[idx]
+            self.weights = self.weights[idx]
+            self.probs = self.probs[idx]
+            self.size = self.state.shape[0]
+            if hasattr(self.sampler, 'replace_prob'):
+                self.sampler.replace_prob(self.probs)
+            if hasattr(self.sampler, '_max_size'):
+                self.sampler._max_size = self.size
+    
+                

@@ -298,6 +298,8 @@ class TD3_BC(object):
             _, _, phi_q1_prime, phi_q2_prime = self.critic(next_state, next_action)
             dr3_loss = torch.sum(phi_q1_prime * phi_q1, dim=1).mean() + torch.sum(phi_q2_prime * phi_q2, dim=1).mean()
             critic_loss += dr3_loss * self.dr3_coef
+        else:
+            dr3_loss = torch.tensor([0.0])
         
         critic_loss = critic_loss.mean()
 
