@@ -111,13 +111,17 @@ TAG=DR3 START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.
 TAG=OPER-percent START=1 RUNS=2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 BC_EVAL=1 RESAMPLE=True bash launch_job_slurm.sh
 TAG=percent_v2 START=2 RUNS=2 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 bash launch_job_slurm.sh
 
+# OPER-R for random
+TAG=OPER-random START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 BC_EVAL=0 RESAMPLE=False bash launch_job_slurm.sh
+TAG=OPER-random START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=0.1 QF_LAYER_NORM=0 BC_EVAL=0 RESAMPLE=False bash launch_job_slurm.sh
+TAG=OPER-random START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 BC_EVAL=0 RESAMPLE=True bash launch_job_slurm.sh
+TAG=OPER-random START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=0.1 QF_LAYER_NORM=0 BC_EVAL=0 RESAMPLE=True bash launch_job_slurm.sh
+
 # ablate ema, double-q, LN
 TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 DOUBLE_Q=0 TAU=1.0 bash launch_job_slurm.sh
 TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 DOUBLE_Q=0 bash launch_job_slurm.sh
 TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.5 bash launch_job_slurm.sh
+
+TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 DOUBLE_Q=0 TAU=1.0 bash launch_job_slurm.sh
+TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 DOUBLE_Q=0 bash launch_job_slurm.sh
 # TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.5 bash launch_job_slurm.sh
-
-
-
-
-

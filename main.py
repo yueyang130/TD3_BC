@@ -357,4 +357,3 @@ if __name__ == "__main__":
         # 	dt = time.time() - time0
         # 	time0 += dt
         # 	print(f"Time steps: {t+1}, speed: {round(100/dt, 1)}itr/s")
-        

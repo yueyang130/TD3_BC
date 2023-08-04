@@ -48,11 +48,11 @@ do
     #   sleep 1
     # done
     for env in halfcheetah walker2d hopper
-    # for env in walker2d
+    # for env in halfcheetah
     do
-    for level in medium medium-replay medium-expert
+    # for level in medium medium-replay medium-expert
     # for level in medium-expert
-    # for level in medium
+    for level in random
     do
       echo "CUDA_VISIBLE_DEVICES=$GPU ${BASE_CMD} --seed=${i} --env=${env}-${level}-v2 &"
     done
