@@ -23,12 +23,14 @@ TAU="${TAU:-0.005}"
 DR3_COEF="${DR3_COEF:-0.0}"
 BC_EVAL="${BC_EVAL:-0}"
 DOUBLE_Q="${DOUBLE_Q:-1}"
-
+noise_std="${noise_std:-0.0}"
+noise_type="${noise_std:-uniform}"
 
 # BASE_CMD="WANDB_API_KEY=$WANDB_API_KEY python main.py --bc_eval=$BC_EVAL --alpha=$ALPHA --bc_coef=$BC_COEF --qf_layer_norm=$QF_LAYER_NORM --reward_scale=$REW_SCALE \
 # --reward_bias=$REW_BIAS --online_per=$ONLINE_PER --per_temp=$PER_TEMP --tag=$TAG"
 BASE_CMD="WANDB_API_KEY=$WANDB_API_KEY python main.py --bc_eval=$BC_EVAL --alpha=$ALPHA --bc_coef=$BC_COEF --qf_layer_norm=$QF_LAYER_NORM --reward_scale=$REW_SCALE \
---reward_bias=$REW_BIAS --percent=$PERCENT --traj=$TRAJ --last_act_bound=$LAST_ACT_BOUND --weight_decay=$WEIGHT_DECAY --dropout_prob=$DROPOUT --tau=$TAU --dr3_coef=$DR3_COEF --double_q=$DOUBLE_Q --tag=$TAG"
+--reward_bias=$REW_BIAS --percent=$PERCENT --traj=$TRAJ --last_act_bound=$LAST_ACT_BOUND --weight_decay=$WEIGHT_DECAY --dropout_prob=$DROPOUT --tau=$TAU --dr3_coef=$DR3_COEF --double_q=$DOUBLE_Q --tag=$TAG \
+--noise_std=$NOISE_STD --noise_type=$NOISE_TYPE"
 
 if [ "$RESAMPLE" = "True" ];then
   BASE_CMD="$BASE_CMD --resample"
@@ -47,12 +49,12 @@ do
     #   echo "CUDA_VISIBLE_DEVICES=$GPU ${BASE_CMD} --seed=${i} --env=${env} &"
     #   sleep 1
     # done
-    for env in halfcheetah walker2d hopper
-    # for env in halfcheetah
+    # for env in halfcheetah walker2d hopper
+    for env in hopper
     do
     # for level in medium medium-replay medium-expert
-    # for level in medium-expert
-    for level in random
+    for level in medium-replay
+    # for level in random
     do
       echo "CUDA_VISIBLE_DEVICES=$GPU ${BASE_CMD} --seed=${i} --env=${env}-${level}-v2 &"
     done

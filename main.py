@@ -145,7 +145,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # Experiment
     parser.add_argument("--policy", default="TD3_BC")               # Policy name
-    parser.add_argument("--env", default="hopper-medium-v0")        # OpenAI gym environment name
+    parser.add_argument("--env", default="hopper-medium-v2")        # OpenAI gym environment name
     parser.add_argument("--seed", default=0, type=int)              # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--log_freq", default=1e3, type=int)       # How often (time steps) we evaluate
     parser.add_argument("--eval_freq", default=5e3, type=int)       # How often (time steps) we evaluate
@@ -199,6 +199,9 @@ if __name__ == "__main__":
     parser.add_argument("--dropout_prob", default=0, type=float)
     parser.add_argument("--model_freq", default=10000, type=int)
     parser.add_argument("--double_q", default=1, type=int)
+    
+    parser.add_argument("--noise_type", default='uniform', type=str)
+    parser.add_argument("--noise_std", default=0.01, type=float)
     
     
     args = parser.parse_args()
@@ -265,7 +268,7 @@ if __name__ == "__main__":
     wandb.init(project="TD3_BC", config={
             "env": args.env, "seed": args.seed, "tag": args.tag,
             "resample": args.resample, "two_sampler": args.two_sampler, "reweight": args.reweight, "p_base": args.base_prob,
-            "percent": args.percent, "traj": args.traj, "double_q": args.double_q,
+            "percent": args.percent, "traj": args.traj, "double_q": args.double_q, "noise_type": args.noise_type, "noise_std": args.noise_std,
             **kwargs
             })
 
@@ -303,6 +306,13 @@ if __name__ == "__main__":
             weight = np.median(np.stack(weight_list, axis=0), axis=0)
         else:
             raise NotImplementedError
+        # add nosie to priority weight
+        noise_std = weight.std() * args.noise_std 
+        if args.noise_type == 'uniform':
+            noise = np.random.uniform(0, 3.46 * noise_std, size=weight.shape)
+        elif args.noise_type == 'normal':
+            noise = np.random.normal(0, noise_std, size=weight.shape)
+        weight += noise
         replay_buffer.replace_weights(weight, args.weight_func, args.exp_lambd, args.std, args.eps, args.eps_max)
 
     # sample subset
