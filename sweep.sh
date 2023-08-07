@@ -125,3 +125,9 @@ TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PER
 TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 DOUBLE_Q=0 TAU=1.0 bash launch_job_slurm.sh
 TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=0 PERCENT=0.1 DOUBLE_Q=0 bash launch_job_slurm.sh
 # TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=0.5 bash launch_job_slurm.sh
+
+# percentage sampling hyper search
+TAG=percentage-sampling START=1 RUNS=1 TASK=gym PERCENT=0.01 PERCENT_TYPE=top bash launch_job_slurm.sh
+TAG=percentage-sampling START=1 RUNS=1 TASK=gym PERCENT=0.1 PERCENT_TYPE=top bash launch_job_slurm.sh
+TAG=percentage-sampling START=1 RUNS=1 TASK=gym PERCENT=0.25 PERCENT_TYPE=top bash launch_job_slurm.sh
+TAG=percentage-sampling START=1 RUNS=1 TASK=gym PERCENT=0.5 PERCENT_TYPE=top bash launch_job_slurm.sh

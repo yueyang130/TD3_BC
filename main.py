@@ -193,6 +193,7 @@ if __name__ == "__main__":
     parser.add_argument("--dr3_coef", default=0.0, type=float)
     
     parser.add_argument("--percent", default=1.0, type=float)
+    parser.add_argument("--percent_type", default='random', type=str)
     parser.add_argument("--traj", default=0, type=int)
     parser.add_argument("--last_act_bound", default=1.0, type=float)
     parser.add_argument("--weight_decay", default=0, type=float)
@@ -265,7 +266,7 @@ if __name__ == "__main__":
     wandb.init(project="TD3_BC", config={
             "env": args.env, "seed": args.seed, "tag": args.tag,
             "resample": args.resample, "two_sampler": args.two_sampler, "reweight": args.reweight, "p_base": args.base_prob,
-            "percent": args.percent, "traj": args.traj, "double_q": args.double_q,
+            "percent": args.percent, "percent_type": args.percent_type, "traj": args.traj, "double_q": args.double_q,
             **kwargs
             })
 
@@ -306,7 +307,7 @@ if __name__ == "__main__":
         replay_buffer.replace_weights(weight, args.weight_func, args.exp_lambd, args.std, args.eps, args.eps_max)
 
     # sample subset
-    replay_buffer.subset(args.env, percent=args.percent, traj=args.traj)
+    replay_buffer.subset(args.env, percent=args.percent, traj=args.traj, percent_type=args.percent_type)
 
     # Initialize policy
     if args.double_q:
@@ -340,19 +341,19 @@ if __name__ == "__main__":
             # np.save(f"./results/{file_name}", evaluations)
             if args.save_model: policy.save(f"./models/{file_name}")
         
-        if (t + 1) % args.model_freq == 0:
-            policy.critic.eval()
-            ntk, batch_grads = compute_ntk(policy.critic, ntk_states, ntk_actions)
-            with torch.no_grad():
-                fix_batch_next_pi = policy.actor(ntk_next_states)
-            detect_matrix, eigenvalues, normed_eigenvalues = compute_detect_matrix(policy.critic, ntk_next_states, fix_batch_next_pi, batch_grads)
+        # if (t + 1) % args.model_freq == 0:
+        #     policy.critic.eval()
+        #     ntk, batch_grads = compute_ntk(policy.critic, ntk_states, ntk_actions)
+        #     with torch.no_grad():
+        #         fix_batch_next_pi = policy.actor(ntk_next_states)
+        #     detect_matrix, eigenvalues, normed_eigenvalues = compute_detect_matrix(policy.critic, ntk_next_states, fix_batch_next_pi, batch_grads)
 
-            wandb.log({
-                'train/max_eigenvalues': eigenvalues.max().cpu(),
-                # 'stat/eigenvalues': eigenvalues.cpu(),
-                'train/max_normed_eigenvalues': normed_eigenvalues.max().cpu(),
-                # 'stat/normed_eigenvalues': normed_eigenvalues.cpu(),
-                }, step=t+1)
+        #     wandb.log({
+        #         'train/max_eigenvalues': eigenvalues.max().cpu(),
+        #         # 'stat/eigenvalues': eigenvalues.cpu(),
+        #         'train/max_normed_eigenvalues': normed_eigenvalues.max().cpu(),
+        #         # 'stat/normed_eigenvalues': normed_eigenvalues.cpu(),
+        #         }, step=t+1)
         # if (t + 1) % 100 == 0:
         # 	dt = time.time() - time0
         # 	time0 += dt

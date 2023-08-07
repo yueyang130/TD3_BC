@@ -199,13 +199,20 @@ class ReplayBuffer(object):
             self.sampler.replace_prob(self.probs)
             
             
-    def subset(self, dataset_name, percent, traj):
+    def subset(self, dataset_name, percent, traj, percent_type):
         if percent < 1:
-            if traj:
-                path = f'../traj_index/{dataset_name}_{percent}.npy'
-            else:
-                path = f'../data_index/{dataset_name}_{percent}.npy'
-            idx = np.load(path)
+            if percent_type == 'random':
+                if traj:
+                    path = f'../traj_index/{dataset_name}_{percent}.npy'
+                else:
+                    path = f'../data_index/{dataset_name}_{percent}.npy'
+                idx = np.load(path)
+            elif percent_type == 'top':
+                topn_ret = np.percentile(self.returns, (1 - percent)*100)
+                idx = np.where(self.returns >= topn_ret)[0]
+                real_percentile = idx.shape[0]/self.size
+                print(f'use top {real_percentile*100}% data.')
+
             self.state = self.state[idx]
             self.action = self.action[idx]
             self.next_state = self.next_state[idx]

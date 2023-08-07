@@ -15,6 +15,7 @@ ONLINE_PER="${ONLINE_PER:-1}"
 PER_TEMP="${PER_TEMP:-0.6}"
 RESAMPLE="${RESAMPLE:-False}"
 PERCENT="${PERCENT:-1.0}"
+PERCENT_TYPE="${PERCENT_TYPE:-random}"
 LAST_ACT_BOUND="${LAST_ACT_BOUND:-1.0}"
 WEIGHT_DECAY="${WEIGHT_DECAY:-0}"
 DROPOUT="${DROPOUT:-0}"
@@ -28,7 +29,7 @@ DOUBLE_Q="${DOUBLE_Q:-1}"
 # BASE_CMD="WANDB_API_KEY=$WANDB_API_KEY python main.py --bc_eval=$BC_EVAL --alpha=$ALPHA --bc_coef=$BC_COEF --qf_layer_norm=$QF_LAYER_NORM --reward_scale=$REW_SCALE \
 # --reward_bias=$REW_BIAS --online_per=$ONLINE_PER --per_temp=$PER_TEMP --tag=$TAG"
 BASE_CMD="WANDB_API_KEY=$WANDB_API_KEY python main.py --bc_eval=$BC_EVAL --alpha=$ALPHA --bc_coef=$BC_COEF --qf_layer_norm=$QF_LAYER_NORM --reward_scale=$REW_SCALE \
---reward_bias=$REW_BIAS --percent=$PERCENT --traj=$TRAJ --last_act_bound=$LAST_ACT_BOUND --weight_decay=$WEIGHT_DECAY --dropout_prob=$DROPOUT --tau=$TAU --dr3_coef=$DR3_COEF --double_q=$DOUBLE_Q --tag=$TAG"
+--reward_bias=$REW_BIAS --percent=$PERCENT --percent_type=$PERCENT_TYPE --traj=$TRAJ --last_act_bound=$LAST_ACT_BOUND --weight_decay=$WEIGHT_DECAY --dropout_prob=$DROPOUT --tau=$TAU --dr3_coef=$DR3_COEF --double_q=$DOUBLE_Q --tag=$TAG"
 
 if [ "$RESAMPLE" = "True" ];then
   BASE_CMD="$BASE_CMD --resample"
@@ -48,11 +49,11 @@ do
     #   sleep 1
     # done
     for env in halfcheetah walker2d hopper
-    # for env in halfcheetah
+    # for env in walker2d
     do
-    # for level in medium medium-replay medium-expert
+    for level in medium medium-replay medium-expert
     # for level in medium-expert
-    for level in random
+    # for level in random
     do
       echo "CUDA_VISIBLE_DEVICES=$GPU ${BASE_CMD} --seed=${i} --env=${env}-${level}-v2 &"
     done
