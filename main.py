@@ -89,6 +89,7 @@ if __name__ == "__main__":
     parser.add_argument("--reward_bias", default=0, type=float)
     
     parser.add_argument("--online_per", default=0, type=int) # Online PER
+    parser.add_argument("--per_steps", default=1e6, type=int) # Online PER
     parser.add_argument("--per_temp", default=0.6, type=float) # Online PER
     parser.add_argument("--init_step", default=1e4, type=int) # Online PER
     
@@ -152,7 +153,7 @@ if __name__ == "__main__":
     wandb.init(project="TD3_BC", config={
             "env": args.env, "seed": args.seed, "tag": args.tag,
             "resample": args.resample, "two_sampler": args.two_sampler, "reweight": args.reweight, "p_base": args.base_prob,
-            "online_per": args.online_per, "per_temp": args.per_temp,
+            "online_per": args.online_per, "per_temp": args.per_temp, "per_steps": args.per_steps,
             **kwargs
             })
 
@@ -218,35 +219,40 @@ if __name__ == "__main__":
             # np.save(f"./results/{file_name}", evaluations)
             if args.save_model: policy.save(f"./models/{file_name}")
 
-        # After a time of unfiorm sampling, get priority of all transitions
-        if (t + 1) == args.init_step:
-            assert replay_buffer.n_step == 1
-            rewards, not_dones = replay_buffer.reward, replay_buffer.not_done
-            values0, values1, next_values = [], [], []
-            bs = args.batch_size * 20
-            for l in range(0, replay_buffer.size, bs):
-                r = min(l+bs, replay_buffer.size)
-                ind = list(range(l, r))
-                data = replay_buffer.sample_by_ind(ind)
-                state, action, next_state = data[0], data[1], data[2]
-                with torch.no_grad():
-                    q0, q1 = policy.get_q(state, action) 
-                    next_q = policy.get_tgt_q(next_state)
-                values0.append(q0.cpu())
-                values1.append(q1.cpu())
-                next_values.append(next_q.cpu())
-            values0, values1, next_values = np.concatenate(values0), np.concatenate(values1), np.concatenate(next_values)
-            tgt_q = rewards + not_dones * args.discount * next_values
-            abs_td = np.abs(values0 - tgt_q) + np.abs(values1 - tgt_q)
-            replay_buffer._set_priority(abs_td**args.per_temp)
-            
-        # dynamically update priority
-        if (t + 1) > args.init_step:
-            priority = np.array(infos['abs_td'])**args.per_temp
-            replay_buffer._update_priority_by_idx(infos['idx'], priority)
-            wandb.log({f'train/priority_max': replay_buffer.priority.max()}, step=t+1)
-            wandb.log({f'train/priority_min': replay_buffer.priority.min()}, step=t+1)
-            
+        if args.online_per and (t + 1) <= args.per_steps:
+            # After a time of unfiorm sampling, get the abs_td of all transitions as the initial priorities
+            if (t + 1) == args.init_step:
+                assert replay_buffer.n_step == 1
+                rewards, not_dones = replay_buffer.reward, replay_buffer.not_done
+                values0, values1, next_values = [], [], []
+                bs = args.batch_size * 20
+                for l in range(0, replay_buffer.size, bs):
+                    r = min(l+bs, replay_buffer.size)
+                    ind = list(range(l, r))
+                    data = replay_buffer.sample_by_ind(ind)
+                    state, action, next_state = data[0], data[1], data[2]
+                    with torch.no_grad():
+                        q0, q1 = policy.get_q(state, action) 
+                        next_q = policy.get_tgt_q(next_state)
+                    values0.append(q0.cpu())
+                    values1.append(q1.cpu())
+                    next_values.append(next_q.cpu())
+                values0, values1, next_values = np.concatenate(values0), np.concatenate(values1), np.concatenate(next_values)
+                tgt_q = rewards + not_dones * args.discount * next_values
+                abs_td = np.abs(values0 - tgt_q) + np.abs(values1 - tgt_q)
+                replay_buffer._set_priority(abs_td**args.per_temp)
+                
+            # dynamically update priority per step
+            if (t + 1) > args.init_step:
+                priority = np.array(infos['abs_td'])**args.per_temp
+                replay_buffer._update_priority_by_idx(infos['idx'], priority)
+                wandb.log({f'train/priority_max': replay_buffer.priority.max()}, step=t+1)
+                wandb.log({f'train/priority_min': replay_buffer.priority.min()}, step=t+1)
+        elif args.online_per and (t + 1) >= args.per_steps:
+            replay_buffer._set_priority(np.ones(replay_buffer.size))
+            wandb.log({f'train/priority_max': 1.0}, step=t+1)
+            wandb.log({f'train/priority_min': 0.0}, step=t+1)
+
         # if (t + 1) % 100 == 0:
         # 	dt = time.time() - time0
         # 	time0 += dt

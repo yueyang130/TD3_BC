@@ -1,0 +1,4 @@
+TAG=online_per_v2 TASK=gym ALPHA=2.5 GUIDE_COEF=1.0 RESAMPLE=True ONLINE_PER=1 PER_TEMP=0.6 START=1 RUNS=3 bash launch_job_slurm.sh
+
+
+TAG=online_per_200k_v2 TASK=gym ALPHA=2.5 GUIDE_COEF=1.0 RESAMPLE=True ONLINE_PER=1 PER_TEMP=0.6 PER_STEPS=200000 START=1 RUNS=1 bash launch_job_slurm.sh
