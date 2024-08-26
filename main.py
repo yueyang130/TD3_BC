@@ -294,7 +294,7 @@ if __name__ == "__main__":
                 file_name = f'{args.env}_{seed}'
             except:
                 file_name = args.weight_path # load the speificed weight
-            wp =  f'../weights/{file_name}.npy'
+            wp =  f'/cluster/data0/22yuey/weights/{file_name}.npy'
             eval_res = np.load(wp, allow_pickle=True).item()
             num_iter, bc_eval_steps = eval_res['iter'], eval_res['eval_steps']
             assert args.iter <= num_iter

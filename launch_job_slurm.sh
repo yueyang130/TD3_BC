@@ -35,7 +35,7 @@ for file in "${file_dir}/${file_prefix}"_*.sh; do
     echo "wait" >> "$file"
     chmod +x "$file"    
 #   srun -J offbench -N 1 -p $PARTITION -w $NODE --gres gpu:1 bash "$file" &
-  srun -J offbench -N 1 -p $PARTITION -w node06 --gres gpu:1 bash "$file" &
+  srun -J offbench -N 1 -p $PARTITION --gres gpu:1 bash "$file" &
 done
 
 echo "生成的文件前缀为 ${file_prefix}"

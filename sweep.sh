@@ -136,10 +136,10 @@ TAG=OPER-noise START=1 RUNS=3 TASK=gym BC_EVAL=1 RESAMPLE=True NOISE_STD=0.1 NOI
 TAG=OPER-noise START=1 RUNS=3 TASK=gym BC_EVAL=1 RESAMPLE=True NOISE_STD=0.1 NOISE_TYPE=normal bash launch_job_slurm.sh
 TAG=OPER-noise START=1 RUNS=3 TASK=gym BC_EVAL=1 RESAMPLE=True NOISE_STD=1.0 NOISE_TYPE=uniform bash launch_job_slurm.sh
 TAG=OPER-noise START=1 RUNS=3 TASK=gym BC_EVAL=1 RESAMPLE=True NOISE_STD=1.0 NOISE_TYPE=normal bash launch_job_slurm.sh
+# TAG=OPER-noise START=1 RUNS=3 TASK=gym BC_EVAL=1 RESAMPLE=True NOISE_STD=2.0 NOISE_TYPE=uniform bash launch_job_slurm.sh
+# TAG=OPER-noise START=1 RUNS=3 TASK=gym BC_EVAL=1 RESAMPLE=True NOISE_STD=2.0 NOISE_TYPE=normal bash launch_job_slurm.sh
 
-TAG=OPER-noise START=1 RUNS=3 TASK=gym BC_EVAL=1 RESAMPLE=True NOISE_STD=2.0 NOISE_TYPE=normal bash launch_job_slurm.sh
 TAG=OPER-noise START=1 RUNS=3 TASK=gym BC_EVAL=1 RESAMPLE=True NOISE_STD=5.0 NOISE_TYPE=normal bash launch_job_slurm.sh
-
 
 # offline: w. LayerNorm w.o. EMA
 TAG=ablate_ema START=1 RUNS=1 TASK=gym ALPHA=2.5 BC_COEF=1.0 QF_LAYER_NORM=1 PERCENT=1.0 TAU=1.0 bash launch_job_slurm.sh
