@@ -94,13 +94,43 @@ class ReplayBuffer(object):
         )
 
     
-    def convert_D4RL(self, dataset):
+    def convert_D4RL(self, dataset, args):
         self.state = dataset['observations']
         self.action = dataset['actions']
         self.next_state = dataset['next_observations']
         self.reward = dataset['rewards'].reshape(-1,1)
         self.not_done = 1. - dataset['terminals'].reshape(-1,1)
         self.size = self.state.shape[0]
+
+        # if 'antmaze' in args.env:
+        #     replay_buffer.reward -= 1.0
+        self.reward = self.reward * args.reward_scale + args.reward_bias
+
+        # add noise
+        if args.noise_elem == 'reward':
+            noise_std = args.noise_std * self.reward.std()
+            if args.noise_type == 'uniform':
+                noise = np.random.uniform(0, 3.46 * noise_std, size=self.reward.shape)
+            elif args.noise_type == 'normal':
+                noise = np.random.normal(0, noise_std, size=self.reward.shape)
+            print(f'{self.reward[:10, 0]}')
+            print(f'{noise[:10, 0]}')
+            self.reward += noise
+            print(f'{self.reward[:10, 0]}')
+
+        if args.noise_elem == 'state':
+            noise_std = args.noise_std * self.state.std(axis=0) # (n_state,)
+            if args.noise_type == 'uniform':
+                noise = np.random.uniform(0, 3.46 * noise_std, size=self.state.shape)
+            elif args.noise_type == 'normal':
+                noise = np.random.normal(0, noise_std, size=self.state.shape) # noise should be (n_samples, n_state)
+            print(f'{self.state[:2, :]}')
+            print(f'{noise[:2, :]}')
+            self.state += noise
+            self.next_state[:-1] += noise[1:]
+            print(f'{self.state[:2, :]}')
+
+
         # compute time limit
         dones_float = np.zeros_like(dataset['rewards'])
         for i in range(len(dones_float) - 1):

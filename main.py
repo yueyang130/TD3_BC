@@ -200,6 +200,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_freq", default=10000, type=int)
     parser.add_argument("--double_q", default=1, type=int)
     
+    parser.add_argument("--noise_elem", default='adv', type=str)
     parser.add_argument("--noise_type", default='uniform', type=str)
     parser.add_argument("--noise_std", default=0.01, type=float)
     
@@ -268,19 +269,18 @@ if __name__ == "__main__":
     wandb.init(project="TD3_BC", config={
             "env": args.env, "seed": args.seed, "tag": args.tag,
             "resample": args.resample, "two_sampler": args.two_sampler, "reweight": args.reweight, "p_base": args.base_prob,
-            "percent": args.percent, "traj": args.traj, "double_q": args.double_q, "noise_type": args.noise_type, "noise_std": args.noise_std,
+            "percent": args.percent, "traj": args.traj, "double_q": args.double_q, 
+            "noise_elem": args.noise_elem, "noise_type": args.noise_type, "noise_std": args.noise_std,
             **kwargs
             })
 
     replay_buffer = utils.ReplayBuffer(state_dim, action_dim, args.batch_size,
         base_prob=args.base_prob, resample=args.resample, reweight=args.reweight, n_step=1, discount=args.discount)
-    replay_buffer.convert_D4RL(d4rl.qlearning_dataset(env))
+    replay_buffer.convert_D4RL(d4rl.qlearning_dataset(env), args)
     # save return dist
     # np.save(f'./weights/{args.env}_returns.npy', replay_buffer.returns)
+
     
-    # if 'antmaze' in args.env:
-    #     replay_buffer.reward -= 1.0
-    replay_buffer.reward = replay_buffer.reward * args.reward_scale + args.reward_bias
     if args.normalize:
         mean,std = replay_buffer.normalize_states() 
     else:
@@ -307,12 +307,13 @@ if __name__ == "__main__":
         else:
             raise NotImplementedError
         # add nosie to priority weight
-        noise_std = weight.std() * args.noise_std 
-        if args.noise_type == 'uniform':
-            noise = np.random.uniform(0, 3.46 * noise_std, size=weight.shape)
-        elif args.noise_type == 'normal':
-            noise = np.random.normal(0, noise_std, size=weight.shape)
-        weight += noise
+        if args.noise_elem == 'adv':
+            noise_std = weight.std() * args.noise_std 
+            if args.noise_type == 'uniform':
+                noise = np.random.uniform(0, 3.46 * noise_std, size=weight.shape)
+            elif args.noise_type == 'normal':
+                noise = np.random.normal(0, noise_std, size=weight.shape)
+            weight += noise
         replay_buffer.replace_weights(weight, args.weight_func, args.exp_lambd, args.std, args.eps, args.eps_max)
 
     # sample subset
