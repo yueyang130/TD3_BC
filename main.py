@@ -200,7 +200,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_freq", default=10000, type=int)
     parser.add_argument("--double_q", default=1, type=int)
     
-    parser.add_argument("--noise_elem", default='adv', type=str)
+    parser.add_argument("--noise_elem", default='none', type=str)
     parser.add_argument("--noise_type", default='uniform', type=str)
     parser.add_argument("--noise_std", default=0.01, type=float)
     

@@ -75,7 +75,24 @@ class ReplayBuffer(object):
             torch.FloatTensor(self.dones_float[ind]).to(self.device),
             torch.FloatTensor(self.ret[ind]).to(self.device)
         )
+    
+    def bc_eval_sample(self):
+        # sample by the distribution of rebalanced behavior policy
+        ind = self.bc_sampler.sample()
+        return self.sample_by_ind(ind)
+    
+    def sample_n_step_by_ind(self, ind):
+        return (
+            torch.FloatTensor(self.state[ind]).to(self.device),
+            torch.FloatTensor(self.action[ind]).to(self.device),
+            torch.FloatTensor(self.state_n[ind]).to(self.device),
+            torch.FloatTensor(self.ret_n[ind]).to(self.device),
+            torch.FloatTensor(self.done_n[ind]).to(self.device),
+        )
 
+    def bc_eval_sample_n(self):
+        ind = self.bc_sampler.sample()
+        return self.sample_n_step_by_ind(ind)
 
      # use for training
     def sample(self, uniform=False, bs=None):
@@ -164,6 +181,8 @@ class ReplayBuffer(object):
             self.sampler = PrefetchBalancedSampler(self.probs, self.size, self.batch_size, n_prefetch=1000)
         else:
             self.sampler = RandSampler(self.size, self.batch_size)
+        # At the first behavior policy iteration, uniform sample
+        self.bc_sampler = RandSampler(self.size, self.batch_size)
 
         # n-step bootstrap for bc eval
         if self.n_step == 1: return
@@ -249,5 +268,9 @@ class ReplayBuffer(object):
                 self.sampler.replace_prob(self.probs)
             if hasattr(self.sampler, '_max_size'):
                 self.sampler._max_size = self.size
+
+    def reset_bc(self, weight):
+        # At the first behavior policy iteration, uniform sample
+        self.bc_sampler = PrefetchBalancedSampler(weight, self.size, self.batch_size, n_prefetch=1000)
     
                 
